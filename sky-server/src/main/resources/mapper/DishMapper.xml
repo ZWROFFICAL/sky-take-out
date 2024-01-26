@@ -8,6 +8,7 @@
         values (#{name}, #{categoryId}, #{price}, #{image}, #{description}, #{createTime}, #{updateTime}, #{createUser},
                 #{updateUser}, #{status})
     </insert>
+
     <select id="pageQuery" resultType="com.sky.vo.DishVO">
         select d.*, c.name as category_name from dish d left outer join category c on d.category_id = c.id
         <where>
@@ -22,8 +23,9 @@
             </if>
         </where>
     </select>
+
     <update id="update">
-        update dish 
+        update dish
         <set>
             <if test="name != null">name = #{name},</if>
             <if test="categoryId != null">category_id = #{categoryId},</if>
@@ -36,4 +38,20 @@
         </set>
         where id = #{id}
     </update>
+
+    <select id="list" resultType="Dish" parameterType="Dish">
+        select * from dish
+        <where>
+            <if test="name != null">
+                and name like concat('%',#{name},'%')
+            </if>
+            <if test="categoryId != null">
+                and category_id = #{categoryId}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
 </mapper>
