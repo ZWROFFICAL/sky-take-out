@@ -11,3 +11,7 @@ sky:
     access-key-id: LTAI5t8gXzftwajmwmjR5yWV
     access-key-secret: 9By09868MTBNEKps4vKHRs90jD9Er7
     bucket-name: zwr-sky-take-out
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
