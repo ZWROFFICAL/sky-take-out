@@ -18,9 +18,9 @@
         <module>sky-server</module>
     </modules>
     <properties>
-        <mybatis.spring>3.0.3</mybatis.spring>
+        <mybatis.spring>2.2.0</mybatis.spring>
         <lombok>1.18.30</lombok>
-        <fastjson>2.0.45</fastjson>
+        <fastjson>2.0.32</fastjson>
         <commons.lang>2.6</commons.lang>
         <druid>1.2.1</druid>
         <pagehelper>1.4.6</pagehelper>
