@@ -21,8 +21,8 @@ import java.util.Map;
 @RequestMapping("/user/user")
 @Slf4j
 public class UserController {
-    private UserService userService;
-    private JwtProperties jwtProperties;
+    private final UserService userService;
+    private final JwtProperties jwtProperties;
 
     public UserController(UserService userService, JwtProperties jwtProperties) {
         this.userService = userService;
