@@ -19,20 +19,26 @@ import com.sky.service.SetmealService;
 import com.sky.vo.DishItemVO;
 import com.sky.vo.SetmealVO;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
+/**
+ * @author zwr
+ */
 @Service
 public class SetmealServiceImpl implements SetmealService {
-    @Autowired
-    private SetmealMapper setmealMapper;
-    @Autowired
-    private SetmealDishMapper setmealDishMapper;
-    @Autowired
-    private DishMapper dishMapper;
+    private final SetmealMapper setmealMapper;
+    private final SetmealDishMapper setmealDishMapper;
+    private final DishMapper dishMapper;
+
+    public SetmealServiceImpl(SetmealMapper setmealMapper, SetmealDishMapper setmealDishMapper, DishMapper dishMapper) {
+        this.setmealMapper = setmealMapper;
+        this.setmealDishMapper = setmealDishMapper;
+        this.dishMapper = dishMapper;
+    }
 
     @Override
     public void saveWithDish(SetmealDTO setmealDTO) {
@@ -41,9 +47,7 @@ public class SetmealServiceImpl implements SetmealService {
         setmealMapper.insert(setmeal);
         Long setmealId = setmeal.getId();
         List<SetmealDish> setmealDishes = setmealDTO.getSetmealDishes();
-        setmealDishes.forEach(setmealDish -> {
-            setmealDish.setSetmealId(setmealId);
-        });
+        setmealDishes.forEach(setmealDish -> setmealDish.setSetmealId(setmealId));
         setmealDishMapper.insertBatch(setmealDishes);
     }
 
@@ -52,15 +56,16 @@ public class SetmealServiceImpl implements SetmealService {
         int pageNum = setmealPageQueryDTO.getPage();
         int pageSize = setmealPageQueryDTO.getPageSize();
         PageHelper.startPage(pageNum, pageSize);
-        Page<SetmealVO> page = setmealMapper.pageQuery(setmealPageQueryDTO);
-        return new PageResult(page.getTotal(), page.getResult());
+        try (Page<SetmealVO> page = setmealMapper.pageQuery(setmealPageQueryDTO)) {
+            return new PageResult(page.getTotal(), page.getResult());
+        }
     }
 
     @Override
     public void deleteBatch(List<Long> ids) {
         ids.forEach(id -> {
             Setmeal setmeal = setmealMapper.getById(id);
-            if (setmeal.getStatus() == StatusConstant.ENABLE) {
+            if (Objects.equals(setmeal.getStatus(), StatusConstant.ENABLE)) {
                 throw new DeletionNotAllowedException(MessageConstant.DISH_ON_SALE);
             }
         });
@@ -89,20 +94,18 @@ public class SetmealServiceImpl implements SetmealService {
         Long setmealId = setmealDTO.getId();
         setmealDishMapper.deleteBySetmealId(setmealId);
         List<SetmealDish> setmealDishes = setmealDTO.getSetmealDishes();
-        setmealDishes.forEach(setmealDish -> {
-            setmealDish.setSetmealId(setmealId);
-        });
+        setmealDishes.forEach(setmealDish -> setmealDish.setSetmealId(setmealId));
         setmealDishMapper.insertBatch(setmealDishes);
     }
 
     @Override
     public void startOrStop(Integer status, Long id) {
-        if (status == StatusConstant.ENABLE) {
+        if (Objects.equals(status, StatusConstant.ENABLE)) {
             //select a.* from dish a left join setmeal_dish b on a.id = b.dish_id where b.setmeal_id = ?
             List<Dish> dishList = dishMapper.getBySetmealId(id);
-            if (dishList != null && dishList.size() > 0) {
+            if (dishList != null && !dishList.isEmpty()) {
                 dishList.forEach(dish -> {
-                    if (StatusConstant.DISABLE == dish.getStatus()) {
+                    if (StatusConstant.DISABLE.equals(dish.getStatus())) {
                         throw new SetmealEnableFailedException(MessageConstant.SETMEAL_ENABLE_FAILED);
                     }
                 });
@@ -117,8 +120,7 @@ public class SetmealServiceImpl implements SetmealService {
 
     @Override
     public List<Setmeal> list(Setmeal setmeal) {
-        List<Setmeal> list = setmealMapper.list(setmeal);
-        return list;
+        return setmealMapper.list(setmeal);
     }
 
     @Override

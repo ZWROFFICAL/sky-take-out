@@ -17,12 +17,15 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author zwr
+ */
 @Service
 @Slf4j
 public class UserServiceImpl implements UserService {
     private static final String WX_LOGIN = "https://api.weixin.qq.com/sns/jscode2session";
-    private WeChatProperties weChatProperties;
-    private UserMapper userMapper;
+    private final WeChatProperties weChatProperties;
+    private final UserMapper userMapper;
 
     public UserServiceImpl(WeChatProperties weChatProperties, UserMapper userMapper) {
         this.weChatProperties = weChatProperties;
@@ -51,7 +54,6 @@ public class UserServiceImpl implements UserService {
         map.put("grant_type", "authorization_code");
         String json = HttpClientUtil.doGet(WX_LOGIN, map);
         JSONObject jsonObject = JSON.parseObject(json);
-        String openid = jsonObject.getString("openid");
-        return openid;
+        return jsonObject.getString("openid");
     }
 }

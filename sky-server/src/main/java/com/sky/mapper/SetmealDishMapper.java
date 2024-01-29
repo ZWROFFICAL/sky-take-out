@@ -7,6 +7,9 @@ import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
+/**
+ * @author zwr
+ */
 @Mapper
 public interface SetmealDishMapper {
     List<Long> getSetmealIdsByDishIds(List<Long> dishIds);

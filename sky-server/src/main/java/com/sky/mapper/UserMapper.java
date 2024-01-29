@@ -4,6 +4,9 @@ import com.sky.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
+/**
+ * @author zwr
+ */
 @Mapper
 public interface UserMapper {
     @Select("select * from user where openid = #{openid}")

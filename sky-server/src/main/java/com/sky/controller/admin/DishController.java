@@ -8,24 +8,31 @@ import com.sky.result.Result;
 import com.sky.service.DishService;
 import com.sky.vo.DishVO;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
 
+/**
+ * @author zwr
+ */
 @RestController
 @RequestMapping("/admin/dish")
 @Slf4j
 public class DishController {
-    @Autowired
-    private DishService dishService;
-    @Autowired
-    private RedisTemplate redisTemplate;
+    private final DishService dishService;
+
+    private final RedisTemplate<String, T> redisTemplate;
+
+    public DishController(DishService dishService, RedisTemplate<String, T> redisTemplate) {
+        this.dishService = dishService;
+        this.redisTemplate = redisTemplate;
+    }
 
     @PostMapping
-    public Result save(@RequestBody DishDTO dishDTO) {
+    public Result<DishDTO> save(@RequestBody DishDTO dishDTO) {
         dishService.saveWithFlavor(dishDTO);
         String key = "dish_" + dishDTO.getCategoryId();
         redisTemplate.delete(key);
@@ -40,10 +47,11 @@ public class DishController {
     }
 
     @DeleteMapping
-    public Result delete(@RequestParam List<Long> ids) {
+    public Result<T> delete(@RequestParam List<Long> ids) {
         log.info("菜品批量删除：{}", ids);
         dishService.deleteBatch(ids);
-        Set keys = redisTemplate.keys("dish_*");
+        Set<String> keys = redisTemplate.keys("dish_*");
+        assert keys != null;
         redisTemplate.delete(keys);
         return Result.success();
     }
@@ -56,10 +64,11 @@ public class DishController {
     }
 
     @PutMapping
-    public Result update(@RequestBody DishDTO dishDTO) {
+    public Result<T> update(@RequestBody DishDTO dishDTO) {
         log.info("修改菜品：{}", dishDTO);
         dishService.updateWithFlavor(dishDTO);
-        Set keys = redisTemplate.keys("dish_*");
+        Set<String> keys = redisTemplate.keys("dish_*");
+        assert keys != null;
         redisTemplate.delete(keys);
         return Result.success();
     }
@@ -71,9 +80,10 @@ public class DishController {
     }
 
     @PostMapping("/status/{status}")
-    public Result<String> startOrStop(@PathVariable Integer status, Long id){
-        dishService.startOrStop(status,id);
-        Set keys = redisTemplate.keys("dish_*");
+    public Result<String> startOrStop(@PathVariable Integer status, Long id) {
+        dishService.startOrStop(status, id);
+        Set<String> keys = redisTemplate.keys("dish_*");
+        assert keys != null;
         redisTemplate.delete(keys);
         return Result.success();
     }

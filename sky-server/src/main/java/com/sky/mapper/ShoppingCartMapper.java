@@ -7,6 +7,9 @@ import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
+/**
+ * @author zwr
+ */
 @Mapper
 public interface ShoppingCartMapper {
     List<ShoppingCart> list(ShoppingCart shoppingCart);

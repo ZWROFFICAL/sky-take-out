@@ -12,11 +12,11 @@ import java.io.Serializable;
  */
 @Data
 public class Result<T> implements Serializable {
-    //编码：1成功，0和其它数字为失败
+    // 编码：1成功，0和其它数字为失败
     private Integer code;
-    //错误信息
+    // 错误信息
     private String msg;
-    //数据
+    // 数据
     private T data;
 
     public static <T> Result<T> success() {
@@ -38,5 +38,4 @@ public class Result<T> implements Serializable {
         result.code = 0;
         return result;
     }
-
 }

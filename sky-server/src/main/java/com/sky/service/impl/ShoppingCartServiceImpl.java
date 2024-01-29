@@ -39,7 +39,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         shoppingCart.setUserId(BaseContext.getCurrentId());
         List<ShoppingCart> list = shoppingCartMapper.list(shoppingCart);
         if (list != null && !list.isEmpty()) {
-            ShoppingCart cart = list.get(0);
+            ShoppingCart cart = list.getFirst();
             cart.setNumber(cart.getNumber() + 1);
             shoppingCartMapper.updateByNumberId(cart);
         } else {

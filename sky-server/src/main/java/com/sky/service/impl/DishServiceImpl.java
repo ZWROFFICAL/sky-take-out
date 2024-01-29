@@ -19,24 +19,29 @@ import com.sky.service.DishService;
 import com.sky.vo.DishVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author zwr
+ */
 @Service
 @Slf4j
 public class DishServiceImpl implements DishService {
-    @Autowired
-    private DishMapper dishMapper;
-    @Autowired
-    private DishFlavorMapper dishFlavorMapper;
-    @Autowired
-    private SetmealDishMapper setmealDishMapper;
-    @Autowired
-    private SetmealMapper setmealMapper;
+    private final DishMapper dishMapper;
+    private final DishFlavorMapper dishFlavorMapper;
+    private final SetmealDishMapper setmealDishMapper;
+    private final SetmealMapper setmealMapper;
+
+    public DishServiceImpl(DishMapper dishMapper, DishFlavorMapper dishFlavorMapper, SetmealDishMapper setmealDishMapper, SetmealMapper setmealMapper) {
+        this.dishMapper = dishMapper;
+        this.dishFlavorMapper = dishFlavorMapper;
+        this.setmealDishMapper = setmealDishMapper;
+        this.setmealMapper = setmealMapper;
+    }
 
     @Override
     @Transactional
@@ -46,10 +51,8 @@ public class DishServiceImpl implements DishService {
         dishMapper.insert(dish);
         Long dishId = dish.getId();
         List<DishFlavor> flavors = dishDTO.getFlavors();
-        if (flavors != null && flavors.size() > 0) {
-            flavors.forEach(dishFlavor -> {
-                dishFlavor.setDishId(dishId);
-            });
+        if (flavors != null && !flavors.isEmpty()) {
+            flavors.forEach(dishFlavor -> dishFlavor.setDishId(dishId));
             dishFlavorMapper.insertBatch(flavors);
         }
     }
@@ -57,20 +60,21 @@ public class DishServiceImpl implements DishService {
     @Override
     public PageResult pageQuery(DishPageQueryDTO dishPageQueryDTO) {
         PageHelper.startPage(dishPageQueryDTO.getPage(), dishPageQueryDTO.getPageSize());
-        Page<DishVO> page = dishMapper.pageQuery(dishPageQueryDTO);
-        return new PageResult(page.getTotal(), page.getResult());
+        try (Page<DishVO> page = dishMapper.pageQuery(dishPageQueryDTO)) {
+            return new PageResult(page.getTotal(), page.getResult());
+        }
     }
 
     @Override
     public void deleteBatch(List<Long> ids) {
         for (Long id : ids) {
             Dish dish = dishMapper.getById(id);
-            if (dish.getStatus() == StatusConstant.ENABLE) {
+            if (dish.getStatus().equals(StatusConstant.ENABLE)) {
                 throw new DeletionNotAllowedException(MessageConstant.DISH_ON_SALE);
             }
         }
         List<Long> setmealIds = setmealDishMapper.getSetmealIdsByDishIds(ids);
-        if (setmealIds != null && setmealIds.size() > 0) {
+        if (setmealIds != null && !setmealIds.isEmpty()) {
             throw new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
         }
         for (Long id : ids) {
@@ -96,10 +100,8 @@ public class DishServiceImpl implements DishService {
         dishMapper.update(dish);
         dishFlavorMapper.deleteByDishId(dishDTO.getId());
         List<DishFlavor> flavors = dishDTO.getFlavors();
-        if (flavors != null && flavors.size() > 0) {
-            flavors.forEach(dishFlavor -> {
-                dishFlavor.setDishId(dishDTO.getId());
-            });
+        if (flavors != null && !flavors.isEmpty()) {
+            flavors.forEach(dishFlavor -> dishFlavor.setDishId(dishDTO.getId()));
             dishFlavorMapper.insertBatch(flavors);
         }
     }
@@ -119,13 +121,13 @@ public class DishServiceImpl implements DishService {
                 .build();
         dishMapper.update(dish);
 
-        if (status == StatusConstant.DISABLE) {
+        if (status.equals(StatusConstant.DISABLE)) {
             // 如果是停售操作，还需要将包含当前菜品的套餐也停售
             List<Long> dishIds = new ArrayList<>();
             dishIds.add(id);
             // select setmeal_id from setmeal_dish where dish_id in (?,?,?)
             List<Long> setmealIds = setmealDishMapper.getSetmealIdsByDishIds(dishIds);
-            if (setmealIds != null && setmealIds.size() > 0) {
+            if (setmealIds != null && !setmealIds.isEmpty()) {
                 for (Long setmealId : setmealIds) {
                     Setmeal setmeal = Setmeal.builder()
                             .id(setmealId)
